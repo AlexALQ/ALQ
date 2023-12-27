@@ -23,13 +23,15 @@ interfaces_file="/etc/network/interfaces"
     echo "iface $FIRST_INT inet static" >> $interfaces_file
     echo "address $FIRST_IP" >> $interfaces_file
     echo "netmask $FIRST_MASK" >> $interfaces_file
-    if [ "$SKIP_GATEWAY" !="true" ]; then
+    if [ "$SKIP_GATEWAY" != "true" ]; then
         echo "gateway $FIRST_GATEWAY" >> $interfaces_file
     fi
 
 echo "Config $FIRST_IP was install  $interfaces_file."
 
 systemctl restart networking.service
+
+echo Edit /etc/networking/
 
 echo Install iptables yes, no?
 read IPT_R
@@ -145,7 +147,7 @@ ip a
 
 if [ "$DHC_P" = "yes" ]; then
        apt update 
-       apr install isc-dhcp-server
+       apt install isc-dhcp-server
        nano /etc/default/isc-dhcp-server
        echo Enter interfaces use for dhcp to /etc/default/isc-dhcp-server!
        echo "subnet 192.168.0.0 netmask 255.255.255.0 {" >> /etc/dhcp/dhcpd.conf
@@ -174,7 +176,7 @@ echo Install FRR to HQ-R yes,no?
 read FRR_R
 
 if [ "$FRR_R" = "yes" ]; then
-       echo apt install frr
+       apt install frr
        nano /etc/frr/daemons
        systemctl restart frr
        vtysh
