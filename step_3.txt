@@ -66,7 +66,6 @@ if [ "$IPT_R" = "yes" ]; then
     fi
 else
     echo "Perfoeming installation nmtui cancel."
-    SKIP_NMTUI="true"
 fi 
 
 echo Install nmtui yes, no?
@@ -78,7 +77,6 @@ if [ "$NM_R" = "yes" ]; then
     nmtui
 else
     echo "Perfoeming installation nmtui cancel."
-    SKIP_NMTUI="true"
 fi 
 
 #добавление узеров в машины и iperf3 на HQ-R//////////////////
@@ -204,7 +202,7 @@ echo Install FRR to ISP yes,no?
 read ISP_P
 
 if [ "$ISP_P" = "yes" ]; then
-       echo apt install frr
+    apt install frr
        nano /etc/frr/daemons
        systemctl restart frr
        vtysh
