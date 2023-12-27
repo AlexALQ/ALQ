@@ -61,7 +61,7 @@ if [ "$IPT_R" = "yes" ]; then
            read INET_B
            ip route add default via $INET_B 
            apt install iptables-persistent
-        fi
+    fi
 else
     echo "Perfoeming installation nmtui cancel."
     SKIP_NMTUI="true"
@@ -81,7 +81,7 @@ fi
 
 #добавление узеров в машины и iperf3 на HQ-R//////////////////
 #1////////////////////////////////////////////////////////////
-
+2
 echo Add user HQ-R and iperf3 yes, no?
 read US_R
 
@@ -107,7 +107,7 @@ fi
 
 #2///////////////////////////////////////////////////////////////
 
-echo Add user BR-R yes, no?
+echo Add user BR-R and backup yes, no?
 read BR_R
 
 if [ "$BR_R" = "yes" ]; then
@@ -179,6 +179,7 @@ if [ "$FRR_R" = "yes" ]; then
        systemctl restart frr
        vtysh
        systemctl restart frr
+       net.ipv4.ip_default_ttl = 65 >> /etc/sysctl.conf
 else
        echo OK, next!
 fi 
@@ -192,8 +193,40 @@ if [ "$FRR_RR" = "yes" ]; then
        systemctl restart frr
        vtysh
        systemctl restart frr
+       net.ipv4.ip_default_ttl = 65 >> /etcsys.conf
 else
        echo OK, next!
 fi 
+
+echo Install FRR to ISP yes,no?
+read ISP_P
+
+if [ "$ISP_P" = "yes" ]; then
+       echo apt install frr
+       nano /etc/frr/daemons
+       systemctl restart frr
+       vtysh
+       systemctl restart frr
+else
+       echo OK, next!
+fi
+
+#Setting ssh to HQ_SRV//////////////////////////////////////////////////////
+echo Setting ssh to HQ_SRV to port 
+
+
+echo Install iptables ssh to HQ_SRV yes,no?
+read PO_T 
+
+if [ "$PO_T" = "yes" ]; then
+    echo Enter port ssh
+    raed PO_RT
+       iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port $PO_RT
+       iptables -A INPUT -s 2.2.2.2 -p tcp --dport $PO_RT -j DROP
+       iptables -A  INPUT -s 2.2.2.2 -p tcp --dport 22 -j DROP
+       iptables-save > /etc/iptables/rules.v4
+else
+       echo OK, next!
+fi
 
 echo STEP 1 is done!
