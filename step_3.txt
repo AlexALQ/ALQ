@@ -90,7 +90,7 @@ if [ "$US_R" = "yes" ]; then
        adduser network_admin
        apt install iperf3
        echo Write to HQ-R: iperf3 -s
-       echo Write ti ISP: iperf3 -c IP_HQ-R
+       echo Write to ISP: iperf3 -c IP addres HQ-R
        echo Create backup file for HQ-R
        mkdir /backup
        cd /backup/
@@ -219,14 +219,63 @@ echo Install iptables ssh to HQ_SRV yes,no?
 read PO_T 
 
 if [ "$PO_T" = "yes" ]; then
-    echo Enter port ssh
+    echo Enter port ssh for redirect
     raed PO_RT
+    echo Enter IP CLI mashine
+    read IP_CLI
+    echo Install rules iptables
        iptables -t nat -A PREROUTING -p tcp --dport 22 -j REDIRECT --to-port $PO_RT
-       iptables -A INPUT -s 2.2.2.2 -p tcp --dport $PO_RT -j DROP
-       iptables -A  INPUT -s 2.2.2.2 -p tcp --dport 22 -j DROP
+       iptables -A INPUT -s $IP_CLI -p tcp --dport $PO_RT -j DROP
+       iptables -A  INPUT -s $IP_CLI -p tcp --dport 22 -j DROP
        iptables-save > /etc/iptables/rules.v4
 else
        echo OK, next!
 fi
 
 echo STEP 1 is done!
+
+#///////////////////////////////////////////////////////////////////////////
+
+echo STEP 2 go install!
+#install DNS to HQ-SRV/////////////////////////////////////////////////////
+
+echo Install DNS to HQ-SRV yes, no?
+read DNS_HQ_SRV
+
+if [ "$DNS_HQ_SRV" = "yes" ]; then
+    apt install bind9 -y
+    cp DNS_named_conf_default_zone.txt /etc/bind/named.conf.default-zones
+    cp db_hq_work.txt /etc/bind/db.hq.work
+    cp db_192_168_0.txt /etc/bind/db.192.168.0
+    echo Zone WORK done!
+    cp db_br_work.txt /etc/bind/db.branch.work
+    cp db_192_168_1.txt /etc/bind/db.192.168.1
+    echo Zone BRANCH done!
+    systemctl restart bind9
+else
+    echo OK, next!
+fi
+
+#Install chronyd to HQ-R and chrony cli to all mashine/////////////////////
+
+echo Install server chrony to HQ-R yes, no ?
+read CHRO_N
+
+if [ "$CHRO_N" = "yes" ]; then
+    apt install chrony
+    echo "server 127.0.0.1 iburst" >> /etc/chrony/chrony.conf
+    echo "local stratum 5" >> /etc/chrony/chrony.conf
+    echo "allow 0.0.0.0/0" >> /etc/chrony/chrony.conf
+    nano /etc/chrony/chrony.conf
+    timedatactl set-timezone Europe/Moscow
+    systemctl restart chronyd
+else
+    echo Install chrony to client mashin!
+    apt install chrony
+    echo IP server 2.2.2.2
+    sed -i 's/pool 2.debian.pool.ntp.org iburst/server 2.2.2.2 iburst/' /etc/chrony/chrony.conf
+    timedatactl set-timezone Europe/Moscow
+    echo systemctl restart chronyd
+    echo OK, chrony clien instaled, timezone instaled, next!
+fi     
+
